@@ -11,14 +11,6 @@ import numpy as np
 # import curses
 from six.moves import queue
 
-from aux import LINEAR as LINEAR
-from aux import LINEAR_DIFF as LINEAR_DIFF
-from aux import LOG as LOG
-from aux import gauss as gauss
-from aux import logL as logL
-from aux import exp_safe as exp_safe
-from aux import limit_lh as limit_lh
-
 # for the NN
 import torch
 import torch.nn as nn
@@ -26,11 +18,18 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 # home-brewed
-import running
+from package.aux import LINEAR as LINEAR
+from package.aux import LINEAR_DIFF as LINEAR_DIFF
+from package.aux import LOG as LOG
+from package.aux import gauss as gauss
+from package.aux import logL as logL
+from package.aux import exp_safe as exp_safe
+from package.aux import limit_lh as limit_lh
+
+import package.running as running
 import xslha
-import ml
-# import debug
-import screen
+import package.ml as ml
+import package.screen as screen
 
 # from aux import dd
 
@@ -222,10 +221,6 @@ class MLS_Scan(Scan, ml.NN):
          3) Use NN to propose new points with a 'good likelihood'
         Approach proposed by from J. Ren,  L. Wu,  J.M. Yang,  J. Zhao
     """
-
-# to-do/open questions:
-#  - how to find islands?
-#  - can one avoid a 'oversampling' of regions by defining a density-penality
 
     def __init__(self, screen, input, main_dir, temp_dir, debug, curses, log):
         Scan.__init__(self, screen, input, main_dir, temp_dir,

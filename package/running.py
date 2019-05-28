@@ -11,8 +11,8 @@ import multiprocessing as mp
 # import sys
 
 
-import screen
-import debug
+import package.screen as screen
+import package.debug  as debug
 
 # ----------------------------------------------------------
 # Class to run the different codes

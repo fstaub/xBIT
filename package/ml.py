@@ -1,16 +1,13 @@
 import numpy as np
-# import time
+import os
+import random
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
-import os
-import random
 
-# import running
-# import scanning
-import screen
+import package.screen as screen
 
 # questions:
 #  - what's the best way of using the NN to propose new points?
