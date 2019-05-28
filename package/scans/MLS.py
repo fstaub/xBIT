@@ -30,12 +30,11 @@ class NewScan(Scan, NN):
          1) Start with random sample
          2) Train NN
          3) Use NN to propose new points with a 'good likelihood'
-        Approach proposed by from J. Ren,  L. Wu,  J.M. Yang,  J. Zhao
+        Approach proposed by J. Ren,  L. Wu,  J.M. Yang,  J. Zhao
     """
 
-    def __init__(self, screen, input, main_dir, temp_dir, debug, curses, log):
-        Scan.__init__(self, screen, input, main_dir, temp_dir,
-                      debug, curses, log)
+    def __init__(self, inputs, temp_dir, config):
+        Scan.__init__(self, inputs, temp_dir, config)
         NN.__init__(self)
 
     def generate_parameters(self, vars, points):
@@ -44,16 +43,17 @@ class NewScan(Scan, NN):
             all += [[eval(vars[xx]) for xx in vars]]
         return all
 
-    def run(self, log):
-        log.info("\n\n##### Iteration: %i #####" % (1))
+    def run(self):
+        self.log.info("\n\n##### Iteration: %i #####" % (1))
         if self.curses:
-            screen.iteration_nn(self.screen, 1, self.iterations)
-        # first run: just a ordinary random scan
+            self.screen.iteration_nn(self.screen, 1, self.iterations)
 
-        self.start_run(log)
+        self.start_run()    
+
+        # first run: just a ordinary random scan to get the initial sample
         save_points = self.setup['Points']
         self.setup['Points'] = 5 * self.setup['Points']
-        self.runner.run(log, sample=[])
+        self.runner.run(self.log, sample=[])
         self.setup['Points'] = save_points
 
         while not self.input_and_observables.empty():
@@ -71,32 +71,31 @@ class NewScan(Scan, NN):
                 y_scale = [[math.log(self.likelihood(yy) + 1.0e-10)]
                            for yy in y]
             else:
-                y_scale = self.scale_data(y, log)
+                y_scale = self.scale_data(y, self.log)
 
             self.set_predictor()
-            self.train(self.predictor, x, y_scale, log)
+            self.train(self.predictor, x, y_scale, self.log)
 
+            # Include a classifier to distinguish valid/invalid points
             if self.use_classifier:
                 self.set_classifier()
                 x_class = self.all_valid + self.all_invalid[0:min([len(self.all_valid),len(self.all_invalid)-1])]
-#                print("valid, invalid:", len(self.all_valid), len(self.all_invalid))
                 y_class = [[0.99, 0.01] for j in self.all_valid] + \
                           [[0.01, 0.99] for j in self.all_invalid[0:min([len(self.all_valid),len(self.all_invalid)-1])]]
-                self.train(self.classifier, x_class, y_class, log)
+                self.train(self.classifier, x_class, y_class, self.log)
 
             proposed_points = self.new_points(
                 self.setup['Points'],
-                #len(self.variables)**2 * (i + 1) * self.setup['Points']
                 len(self.variables)**2 * self.setup['Points']                
             )
-            log.info("##### Iteration: %i #####" % (i + 2))
+            self.log.info("##### Iteration: %i #####" % (i + 2))
             if self.curses:
-                screen.iteration_nn(self.screen, i + 1, self.iterations)
-            self.runner.run(log, sample=proposed_points)
+                self.screen.iteration_nn(self.screen, i + 1, self.iterations)
+            self.runner.run(self.log, sample=proposed_points)
             while not self.input_and_observables.empty():
                 self.all_data.append(self.input_and_observables.get())
 
-        self.finish_run(log)
+        self.finish_run()
 
     def guess_LH(self, x_in):
         # Run predictor
@@ -111,7 +110,6 @@ class NewScan(Scan, NN):
         if self.use_classifier:
             y_class = self.classifier(
                 Variable(torch.FloatTensor(x_in))).data.cpu().numpy()
-#            print("classifier result: ", y_class)
         else:
             y_class = [[0.99, 0.01] for _ in y_try]
 

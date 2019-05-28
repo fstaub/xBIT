@@ -210,9 +210,9 @@ def main(stdscr, debug, curses):
         screen.show_logo(stdscr)
 
     for i in args.inputfiles:
-        input = parse_input(i, main_logger)
-        input = set_default(input, main_logger)
-        input = check_terminal_arguments(input, args, main_logger)
+        inputs = parse_input(i, main_logger)
+        inputs = set_default(inputs, main_logger)
+        inputs = check_terminal_arguments(inputs, args, main_logger)
 
         # checking for the correct scan
         scan_initialised = False
@@ -221,39 +221,15 @@ def main(stdscr, debug, curses):
             if (new_scan[:2] != "__"):
                 scan_class = importlib.import_module("package.scans."+new_scan[:-3])
                 # new_tool = new_class.NewTool()
-                if scan_class.scan_name == input['Setup']['Type']:
-                    scan = scan_class.NewScan(stdscr, input, cwd,
-                                      temporary_dir, debug, curses,
-                                      main_logger)
+                if scan_class.scan_name == inputs['Setup']['Type']:
+                    scan = scan_class.NewScan(inputs, temporary_dir, 
+                                    [cwd, stdscr, debug, curses, main_logger])
                     scan_initialised = True
 
-        # if input['Setup']['Type'] == "Grid":
-        #     scan = scanning.Grid_Scan(stdscr, input, cwd,
-        #                               temporary_dir, debug, curses,
-        #                               main_logger)
-        # elif input['Setup']['Type'] == "Random":
-        #     scan = scanning.Random_Scan(stdscr, input, cwd,
-        #                                 temporary_dir, debug, curses,
-        #                                 main_logger)
-        # elif input['Setup']['Type'] == "MCMC":
-        #     scan = scanning.MCMC_Scan(stdscr, input, cwd,
-        #                               temporary_dir, debug, curses,
-        #                               main_logger)
-        # elif input['Setup']['Type'] == "MLS":
-        #     scan = scanning.MLS_Scan(stdscr, input, cwd,
-        #                              temporary_dir, debug, curses,
-        #                              main_logger)
-        # elif input['Setup']['Type'] == "MCMC_NN":
-        #     scan = scanning.MCMC_NN_Scan(stdscr, input, cwd,
-        #                                  temporary_dir, debug, curses,
-        #                                  main_logger)
-        # else:
-        #     main_logger.error("Scan Type %s not defined" % input['Type'])
-
         if (not scan_initialised):  
-            main_logger.error("Scan Type %s not defined" % input['Setup']['Type'])
+            main_logger.error("Scan Type %s not defined" % inputs['Setup']['Type'])
             sys.exit()
-        scan.run(main_logger)
+        scan.run()
 
     if curses:    # in order to keep the last information on the screen
         mypad_contents = []

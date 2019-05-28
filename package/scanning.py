@@ -42,31 +42,30 @@ import package.screen as screen
 class Scan:
     """Main scanner class"""
 
-    def __init__(self, screen, input, main_dir, temp_dir, debug, curses, log):
-        log.info('Initialise scan: %s' % input['Setup']['Name'])
+    def __init__(self, inputs, temp_dir, config):
+        # Current xBIT configuration
+        self.main_dir = config[0]
+        self.screen = config[1]
+        self.debug = config[2]
+        self.curses = config[3]
+        self.log = config[4]
+        self.temp_dir = temp_dir
+
+        self.log.info('Initialise scan: %s' % inputs['Setup']['Name'])        
 
         # main information about the scan
-        self.setup = input['Setup']
-        self.codes = input['Included_Codes']
-        self.blocks = input['Blocks']
-        self.observables = input['Observables']
-        self.variables = input['Variables']
-        self.ml = input['ML']
+        self.setup = inputs['Setup']
+        self.codes = inputs['Included_Codes']
+        self.blocks = inputs['Blocks']
+        self.observables = inputs['Observables']
+        self.variables = inputs['Variables']
+        self.ml = inputs['ML']
 
-        self.Short = input['Short']
+        self.Short = inputs['Short']
 
         # Variable to store all commands to execute the programs
         self.run_tools = []
 
-
-        self.screen = screen
-
-        # directories and log file
-        self.main_dir = main_dir
-        self.temp_dir = temp_dir
-        self.log = log
-        self.curses = curses
-        self.debug = debug
 
         self.distance_penalty = True
 
@@ -80,13 +79,13 @@ class Scan:
             self.codes[c] = eval(self.codes[c])
 
         # load the settings-file
-        self.parse_settings(self.setup['Settings'], log)
+        self.parse_settings(self.setup['Settings'])
         self.set_up_codes()
         self.make_out_dir()
         self.output_file = os.path.join(self.main_dir, "Output",
                                         self.setup['Name'], "SpectrumFiles")
 
-        if input['Setup']['Cores'] > 1:
+        if inputs['Setup']['Cores'] > 1:
             # initialise queues needed for multicore runs
             self.input_and_observables = mp.Queue()
             self.all_points = mp.Queue()
@@ -103,16 +102,16 @@ class Scan:
         self.all_invalid = []
 
         # Initialse Runner class
-        self.runner = running.Runner(self, log)
+        self.runner = running.Runner(self, self.log)
 
-    def parse_settings(self, file, log):
+    def parse_settings(self, file):
         """ Parse the settings file which contains
             the paths,  executables,  etc. """
-        log.info('Parse Settings file: %s' % file)
+        self.log.info('Parse Settings file: %s' % file)
         with open("Settings/" + file) as json_data:
             d = json.load(json_data)
         self.settings = d
-        log.debug('Settings: %s' % str(d))
+        self.log.debug('Settings: %s' % str(d))
 
     def set_up_codes(self):
         """ Set up the HEP Tools needed in the scan """
@@ -156,14 +155,14 @@ class Scan:
                                     self.blocks[current_block], point, lh)
         lh.close
 
-    def start_run(self, log):
+    def start_run(self):
         self.start_time = time.time()
-        log.info('Running scan %s' % str(self.setup['Name']))
+        self.log.info('Running scan %s' % str(self.setup['Name']))
         if self.curses:
             screen.show_setup(self.screen, self.setup, self.codes)
 
-    def finish_run(self, log):
-        log.info('Scan %s finished' % str(self.setup['Name']))
+    def finish_run(self):
+        self.log.info('Scan %s finished' % str(self.setup['Name']))
         print("All done!")
         print("Time Needed:               "
               + str(time.time() - self.start_time) + "s")

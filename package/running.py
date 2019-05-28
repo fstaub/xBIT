@@ -26,21 +26,22 @@ class HepTool:
     def run(self, spc_file, temp_dir, log):
         log.info('Running %s ' % self.name)
         os.chdir(temp_dir)
-        if os.path.exists(self.settings['Output']):
-            if self.settings['Output'] is not self.settings['Input']:
-                pass
-                # os.remove(self.settings['Output'])
-        self.runner(self.settings['Path'], self.settings['Binary'],
-                    self.settings['Input'], self.settings['Output'],
-                    spc_file, temp_dir, log)
+
+        try:
+            self.runner(self.settings, spc_file, temp_dir, log)
+        except Exception as e:
+            print("Problem in running ", self.name)
+            print(e)
 
 # -----------------------------
 #  Auxiliary Run and Parse functions for different codes
 # -----------------------------
 
 
-def RunSPheno(path, bin, input, output, spc_file, dir, log):
-    debug.command_line_log(path + bin + " " + input, log)
+def RunSPheno(settings, spc_file, dir, log):
+    if os.path.exists(settings['OutputFile']):
+        os.remove(settings['OutputFile'])
+    debug.command_line_log(settings['Command'] + " " + settings['InputFile'], log)
 
 class Runner():
     def __init__(self, scan, log):
@@ -149,7 +150,7 @@ class Runner():
     def bad_point_check(self, scan, log):
         if scan.setup['Interrupt'][0] == "True":
             values = []
-            spc = xslha.read(scan.settings['SPheno']['Output'])
+            spc = xslha.read(scan.settings['SPheno']['OutputFile'])
             for obs in scan.observables.values():
                 try:
                     values.append(spc.Value(obs['SLHA'][0], obs['SLHA'][1]))
@@ -170,30 +171,30 @@ class Runner():
                  % str(point))
         if scan.curses:
             screen.current_point_core(scan.screen, point, int(temp_dir[-1]))
-        scan.write_lh_file(point, temp_dir, scan.settings['SPheno']['Input'])
-        scan.spheno.run(scan.settings['SPheno']['Output'], temp_dir, log)
+        scan.write_lh_file(point, temp_dir, scan.settings['SPheno']['InputFile'])
+        scan.spheno.run(scan.settings['SPheno']['OutputFile'], temp_dir, log)
         if self.bad_point_check(scan, log):
             return
-        if os.path.exists(scan.settings['SPheno']['Output']):
+        if os.path.exists(scan.settings['SPheno']['OutputFile']):
             log.info('SPheno spectrum produced')
             for run_now in scan.run_tools:
                 try:
-                    run_now.run(scan.settings['SPheno']['Output'], temp_dir, log)
+                    run_now.run(scan.settings['SPheno']['OutputFile'], temp_dir, log)
                 except Exception as e:
                     print(e)
 
             if scan.Short:
-                spc = xslha.read(scan.settings['SPheno']['Output'])
+                spc = xslha.read(scan.settings['SPheno']['OutputFile'])
                 debug.command_line_log("echo " + ' '.join(map(str,point)) + ' ' + ' '.join(map(str,[spc.Value(obs['SLHA'][0], obs['SLHA'][1]) for obs in scan.observables.values()])) + " >> " + output_file, log)
             else:
-                debug.command_line_log("cat " + scan.settings['SPheno']['Output']
+                debug.command_line_log("cat " + scan.settings['SPheno']['OutputFile']
                                    + " >> " + output_file, log)
                 debug.command_line_log("echo \"ENDOFPARAMETERPOINT\" >> "
                                    + output_file, log)
                 
             if scan.setup['Type'] in ["MLS", "MLS1", "MCMC", "MCMC_NN"]:
                 log.info('Reading spectrum file')
-                spc = xslha.read(scan.settings['SPheno']['Output'])
+                spc = xslha.read(scan.settings['SPheno']['OutputFile'])
                 try:
                     list_all.append(
                         [point, [spc.Value(obs['SLHA'][0], obs['SLHA'][1])
@@ -215,7 +216,7 @@ class Runner():
 #                debug.command_line_log("echo " + ' '.join(map(str,point)) + " >> " + output_file, log)
 #                
 #            else:
-                debug.command_line_log("cat " + scan.settings['SPheno']['Input']
+                debug.command_line_log("cat " + scan.settings['SPheno']['InputFile']
                                    + " >> " + output_file, log)
                 debug.command_line_log("echo \"ENDOFPARAMETERPOINT\" >> "
                                   + output_file, log)
