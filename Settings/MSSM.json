@@ -1,0 +1,38 @@
+{
+  "SPheno": {
+    "Path": "~/Documents/Uni/Work/SPhenos/Test_4.0.3_4.14.1/",
+    "Binary": "bin/SPhenoMSSM",
+    "Input": "LesHouches.in.MSSM",
+    "Output": "SPheno.spc.MSSM"
+  },
+
+  "MicrOmegas": {
+     "Path": "/home/fnstaub/Data/HEP-Software/micromegas_4.3.2/MSSM_SARAH/",
+     "Binary": "CalcOmega",
+     "Input": "SPheno.spc.MSSM",
+     "Output":  "omg.out",
+     "DM_Candidate":     1000022
+  },
+
+  "HiggsBounds": {
+    "Path": "/home/fnstaub/Data/HEP-Software/HiggsBounds-4.3.1/",
+    "Binary": "HiggsBounds",
+    "Input": "LandH effC 3 1",
+    "Output": "results.dat"
+  },
+
+  "HiggsSignals": {
+    "Path": "/home/fnstaub/Data/HEP-Software/HiggsSignals-1.3.2/",
+    "Binary": "HiggsSignals",
+    "Input":"latestresults peak 2 effC 3 1",
+    "Output": "results.dat"
+  },
+
+  "Vevacious": {
+    "Path": "/home/fnstaub/Documents/Uni/Work/Vevacious/Vevacious-1.2.01/",
+    "Binary": "./bin/Vevacious.exe --input=bin/VevaciousInitialization_stop.xml --should_Tunnel=False",
+    "Input":"SPheno.spc.MSSM",
+    "Output": "SPheno.spc.MSSM"
+  }
+
+}
