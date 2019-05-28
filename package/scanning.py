@@ -10,6 +10,7 @@ import itertools
 import numpy as np
 # import curses
 from six.moves import queue
+import importlib
 
 # for the NN
 import torch
@@ -53,6 +54,9 @@ class Scan:
         self.ml = input['ML']
 
         self.Short = input['Short']
+
+        # Variable to store all commands to execute the programs
+        self.run_tools = []
 
 
         self.screen = screen
@@ -114,22 +118,34 @@ class Scan:
         """ Set up the HEP Tools needed in the scan """
         self.spheno = running.HepTool("SPheno", self.settings['SPheno'],
                                       running.RunSPheno, self.log)
-        if self.codes['HiggsBounds']:
-            self.hb = running.HepTool("HiggsBounds",
-                                      self.settings['HiggsBounds'],
-                                      running.RunHiggs, self.log)
-        if self.codes['HiggsSignals']:
-            self.hs = running.HepTool("HiggsSignals",
-                                      self.settings['HiggsSignals'],
-                                      running.RunHiggs, self.log)
-        if self.codes['MicrOmegas']:
-            self.mo = running.HepTool("MicrOmegas",
-                                      self.settings['MicrOmegas'],
-                                      running.RunMicrOmegas, self.log)
-        if self.codes['Vevacious']:
-            self.vevacious = running.HepTool("Vevacious",
-                                      self.settings['Vevacious'],
-                                      running.RunVevacious, self.log)                                      
+        
+        # import all other tools
+        new_tools = os.listdir("package/tools")
+        for new in new_tools:
+            if (new[:2] != "__"):
+                new_class = importlib.import_module("package.tools."+new[:-3])
+                new_tool = new_class.NewTool()
+                if self.codes[new_tool.name]:
+                    self.run_tools.append(running.HepTool(new_tool.name,
+                                       self.settings[new_tool.name],
+                                       new_tool.run, self.log))
+            print("new_runs",self.run_tools)
+        # if self.codes['HiggsBounds']:
+        #     self.hb = running.HepTool("HiggsBounds",
+        #                               self.settings['HiggsBounds'],
+        #                               running.RunHiggs, self.log)
+        # if self.codes['HiggsSignals']:
+        #     self.hs = running.HepTool("HiggsSignals",
+        #                               self.settings['HiggsSignals'],
+        #                               running.RunHiggs, self.log)
+        # if self.codes['MicrOmegas']:
+        #     self.mo = running.HepTool("MicrOmegas",
+        #                               self.settings['MicrOmegas'],
+        #                               running.RunMicrOmegas, self.log)
+        # if self.codes['Vevacious']:
+        #     self.vevacious = running.HepTool("Vevacious",
+        #                               self.settings['Vevacious'],
+        #                               running.RunVevacious, self.log)                                      
 
     def likelihood(self, x):
         """ calculate likelihood """
@@ -364,21 +380,6 @@ class MLS_Scan(Scan, ml.NN):
             new_good_points
         ))
         return new_x
-
-#     def min_Delta(self, point, data):
-#         '''Function to calculate the minimal 'distance' of a new point
-#         to previously sampled points'''
-#         sorted_data = sorted(data, key=lambda x: x[1])
-#         min = 1.0e6
-#         if dd(point, sorted_data[0]) > dd(point, sorted_data[-1]):
-#             sorted_data.reverse()
-#         for s in sorted_data:
-#             new_dd = dd(point, s)
-#             if new_dd < min:
-#                 min = new_dd
-# #            elif abs((point[0]-s[0])/(point[0]+s[0]))>min:
-# #                break
-#         return min
 
     def min_Delta_LH(self, lh, xval):
         '''Function to calculate the minimal 'distance' of a new point

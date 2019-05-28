@@ -8,14 +8,14 @@
   },
 
   "Included_Codes": {
-    "HiggsBounds": "False",
+    "HiggsBounds": "True",
     "HiggsSignals": "False",
     "MicrOmegas": "False",
     "Vevacious": "True"
   },
 
   "Variables": {
-      "0": "LINEAR(200,2500,50)"
+      "0": "LINEAR(200,2500,2)"
   },
 
   "Blocks": {

@@ -31,12 +31,9 @@ if mainpath:
     sys.path.append(mainpath.group(0))
 
 # home-brewed
-# import running
-import scanning
-
-# import ml
-import debug
-import screen
+import package.scanning as scanning
+import package.debug as debug
+import package.screen as screen
 
 
 
@@ -47,7 +44,7 @@ try:
 except:
     print("Error: the module xslha is needed")
     print("you can install it via:")
-    print("   pip install xslha")
+    print("   pip3 install xslha")
     print("and run again")
     sys.exit()
 
@@ -58,10 +55,6 @@ except:
     print("Error: pytorch is needed")
     print("You find details about the installation here: https://pytorch.org/")
     sys.exit()
-
-# to-do/questions:
-# -definition/format of input (yaml instead of json?)
-
 
 
 

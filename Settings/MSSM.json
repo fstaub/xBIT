@@ -7,7 +7,7 @@
   },
 
   "MicrOmegas": {
-     "Path": "/home/fnstaub/Data/HEP-Software/micromegas_4.3.2/MSSM_SARAH/",
+     "Path": "/home/fnstaub/Data/HEP_Software/micromegas_4.3.2/MSSM_SARAH/",
      "Binary": "CalcOmega",
      "Input": "SPheno.spc.MSSM",
      "Output":  "omg.out",
@@ -15,14 +15,14 @@
   },
 
   "HiggsBounds": {
-    "Path": "/home/fnstaub/Data/HEP-Software/HiggsBounds-4.3.1/",
+    "Path": "/home/fnstaub/Data/HEP_Software/HiggsBounds-4.3.1/",
     "Binary": "HiggsBounds",
     "Input": "LandH effC 3 1",
     "Output": "results.dat"
   },
 
   "HiggsSignals": {
-    "Path": "/home/fnstaub/Data/HEP-Software/HiggsSignals-1.3.2/",
+    "Path": "/home/fnstaub/Data/HEP_Software/HiggsSignals-1.3.2/",
     "Binary": "HiggsSignals",
     "Input":"latestresults peak 2 effC 3 1",
     "Output": "results.dat"

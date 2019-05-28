@@ -49,54 +49,54 @@ def RunSPheno(path, bin, input, output, spc_file, dir, log):
     debug.command_line_log(path + bin + " " + input, log)
 
 
-def RunHiggs(path, bin, input, output, spc_file, dir, log):
-    debug.command_line_log(path + bin + " " + input + " " + dir + "/", log)
-    # Reading the Output file
-    if os.path.exists(bin + "_results.dat"):
-        for line in open(bin + "_results.dat"):
-            li = line.strip()
-            if not li.startswith("#"):
-                hb_res = list(filter(None, line.rstrip().split(' ')))
-        # Append output to the SPheno file
-        debug.command_line_log("echo \"Block " + bin.upper() + " # \" >> "
-                               + spc_file, log)
-        for i in range(1, len(hb_res)):
-            debug.command_line_log("echo \"" + str(i) + " " + str(hb_res[i])
-                                   + " # \" >> " + spc_file, log)
-    else:
-        log.error("HiggsBounds output not written!",
-                  path + bin + " " + input + " " + dir)
+# def RunHiggs(path, bin, input, output, spc_file, dir, log):
+#     debug.command_line_log(path + bin + " " + input + " " + dir + "/", log)
+#     # Reading the Output file
+#     if os.path.exists(bin + "_results.dat"):
+#         for line in open(bin + "_results.dat"):
+#             li = line.strip()
+#             if not li.startswith("#"):
+#                 hb_res = list(filter(None, line.rstrip().split(' ')))
+#         # Append output to the SPheno file
+#         debug.command_line_log("echo \"Block " + bin.upper() + " # \" >> "
+#                                + spc_file, log)
+#         for i in range(1, len(hb_res)):
+#             debug.command_line_log("echo \"" + str(i) + " " + str(hb_res[i])
+#                                    + " # \" >> " + spc_file, log)
+#     else:
+#         log.error("HiggsBounds output not written!",
+#                   path + bin + " " + input + " " + dir)
 
-def RunVevacious(path, bin, input, output, spc_file, dir, log):
-    try:
-        shutil.copy(input, path)
-        os.chdir(path)
-        debug.command_line_log(bin, log)
-        shutil.copyfile(input, os.path.join(dir, input))
-        os.chdir(dir)
-    except Exception as e: 
-        log.error("Problem occured running Vevacious!")        
-        log.error(e)
+# def RunVevacious(path, bin, input, output, spc_file, dir, log):
+#     try:
+#         shutil.copy(input, path)
+#         os.chdir(path)
+#         debug.command_line_log(bin, log)
+#         shutil.copyfile(input, os.path.join(dir, input))
+#         os.chdir(dir)
+#     except Exception as e: 
+#         log.error("Problem occured running Vevacious!")        
+#         log.error(e)
 
 
                  
 
-def RunMicrOmegas(path, bin, input, output, spc_file, dir, log):
-    # shutil.copyfile(input, os.path.join(path, input))
-    # os.chdir(path)
-    # subprocess.call("./"+bin, shell=True, stdout=std_out, stderr=std_err)
-    # Using global paths to call micromegas seems to work finally,
-    # i.e. we can run it as any other code
-    debug.command_line_log(path + bin, log)
-    # Glue output to the SPheno file
-    if os.path.exists(output):
-        debug.command_line_log("echo \"Block DARKMATTER # \" >> "
-                               + os.path.join(dir, spc_file), log)
-        debug.command_line_log("cat " + output + " >> "
-                               + os.path.join(dir, spc_file), log)
-    else:
-        log.error("MicrOmegas output not written!")
-#    os.chdir(dir)
+# def RunMicrOmegas(path, bin, input, output, spc_file, dir, log):
+#     # shutil.copyfile(input, os.path.join(path, input))
+#     # os.chdir(path)
+#     # subprocess.call("./"+bin, shell=True, stdout=std_out, stderr=std_err)
+#     # Using global paths to call micromegas seems to work finally,
+#     # i.e. we can run it as any other code
+#     debug.command_line_log(path + bin, log)
+#     # Glue output to the SPheno file
+#     if os.path.exists(output):
+#         debug.command_line_log("echo \"Block DARKMATTER # \" >> "
+#                                + os.path.join(dir, spc_file), log)
+#         debug.command_line_log("cat " + output + " >> "
+#                                + os.path.join(dir, spc_file), log)
+#     else:
+#         log.error("MicrOmegas output not written!")
+# #    os.chdir(dir)
 
 
 class Runner():
@@ -249,27 +249,31 @@ class Runner():
             return
         if os.path.exists(scan.settings['SPheno']['Output']):
             log.info('SPheno spectrum produced')
-            if scan.codes['HiggsBounds'] is True:
-                    scan.hb.run(scan.settings['SPheno']['Output'],
-                                temp_dir, log)
-                    if self.bad_point_check(scan, log):
-                        return
-            if scan.codes['HiggsSignals'] is True:
-                    scan.hs.run(scan.settings['SPheno']['Output'],
-                                temp_dir, log)
-                    if self.bad_point_check(scan, log):
-                        return
-            if scan.codes['MicrOmegas'] is True:
-                # Check for the correct LSP
-                spc = xslha.read(scan.settings['SPheno']['Output'])
-                if spc.Value('LSP', [1]) == scan.settings['MicrOmegas']['DM_Candidate']:
-                    scan.mo.run(scan.settings['SPheno']['Output'], temp_dir, log)
-            if scan.codes['Vevacious'] is True:
-                scan.vevacious.run(scan.settings['Vevacious']['Output'], temp_dir, log)                    
-             # NOT SURE IF WE SHOULD WRITE A VALUE FOR THE WRONG DM CANDIDATE... SEEMS TO DISTURB THE NN
-             #   else:
-             #       subprocess.call("echo \"Block DARKMATTER # \" >> "+scan.settings['SPheno']['Output'], shell=True)
-             #       subprocess.call("echo \"1 5.0 # wrong LSP \" >> "+scan.settings['SPheno']['Output'], shell=True)
+            for run_now in scan.run_tools:
+                try:
+                    run_now.run(scan.settings['SPheno']['Output'], temp_dir, log)
+                except Exception as e:
+                    print(e)
+
+            # if scan.codes['HiggsBounds'] is True:
+            #         scan.hb.run(scan.settings['SPheno']['Output'],
+            #                     temp_dir, log)
+            #         if self.bad_point_check(scan, log):
+            #             return
+            # if scan.codes['HiggsSignals'] is True:
+            #         scan.hs.run(scan.settings['SPheno']['Output'],
+            #                     temp_dir, log)
+            #         if self.bad_point_check(scan, log):
+            #             return
+            # if scan.codes['MicrOmegas'] is True:
+            #     # Check for the correct LSP
+            #     spc = xslha.read(scan.settings['SPheno']['Output'])
+            #     if spc.Value('LSP', [1]) == scan.settings['MicrOmegas']['DM_Candidate']:
+            #         scan.mo.run(scan.settings['SPheno']['Output'], temp_dir, log)
+            # if scan.codes['Vevacious'] is True:
+            #     scan.vevacious.run(scan.settings['Vevacious']['Output'], temp_dir, log)                    
+
+
 
             if scan.Short:
                 spc = xslha.read(scan.settings['SPheno']['Output'])
