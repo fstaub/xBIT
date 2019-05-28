@@ -7,16 +7,16 @@ import multiprocessing as mp
 import math
 # import collections
 import itertools
-import numpy as np
+# import numpy as np
 # import curses
 from six.moves import queue
 import importlib
 
 # for the NN
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import Variable
+# import torch
+# import torch.nn as nn
+# import torch.optim as optim
+# from torch.autograd import Variable
 
 # home-brewed
 # from package.aux import LINEAR as LINEAR

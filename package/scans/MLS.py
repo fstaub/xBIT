@@ -1,10 +1,23 @@
 from package.scanning import Scan as Scan
 from package.ml import NN as NN
-import itertools
 
+
+import itertools
+import numpy as np
+import math
+
+# from pytorch
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.autograd import Variable
+
+# auxiliary functions already included in xBIT
 from package.aux import LINEAR as LINEAR
 from package.aux import LINEAR_DIFF as LINEAR_DIFF
 from package.aux import LOG as LOG
+from package.aux import exp_safe as exp_safe
+from package.aux import limit_lh as limit_lh
 
 
 scan_name = "MLS"
