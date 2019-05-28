@@ -24,6 +24,7 @@ import json
 import collections
 import curses
 import re
+import importlib
 
 sname=str(sys.argv[0]) 
 mainpath = re.search("^.*\/",sname)
@@ -213,29 +214,45 @@ def main(stdscr, debug, curses):
         input = set_default(input, main_logger)
         input = check_terminal_arguments(input, args, main_logger)
 
-        if input['Setup']['Type'] == "Grid":
-            scan = scanning.Grid_Scan(stdscr, input, cwd,
+        # checking for the correct scan
+        scan_initialised = False
+        all_scans = os.listdir("package/scans")
+        for new_scan in all_scans:
+            if (new_scan[:2] != "__"):
+                scan_class = importlib.import_module("package.scans."+new_scan[:-3])
+                # new_tool = new_class.NewTool()
+                if scan_class.scan_name == input['Setup']['Type']:
+                    scan = scan_class.NewScan(stdscr, input, cwd,
                                       temporary_dir, debug, curses,
                                       main_logger)
-        elif input['Setup']['Type'] == "Random":
-            scan = scanning.Random_Scan(stdscr, input, cwd,
-                                        temporary_dir, debug, curses,
-                                        main_logger)
-        elif input['Setup']['Type'] == "MCMC":
-            scan = scanning.MCMC_Scan(stdscr, input, cwd,
-                                      temporary_dir, debug, curses,
-                                      main_logger)
-        elif input['Setup']['Type'] == "MLS":
-            scan = scanning.MLS_Scan(stdscr, input, cwd,
-                                     temporary_dir, debug, curses,
-                                     main_logger)
-        elif input['Setup']['Type'] == "MCMC_NN":
-            scan = scanning.MCMC_NN_Scan(stdscr, input, cwd,
-                                         temporary_dir, debug, curses,
-                                         main_logger)
-        else:
-            main_logger.error("Scan Type %s not defined" % input['Type'])
+                    scan_initialised = True
 
+        # if input['Setup']['Type'] == "Grid":
+        #     scan = scanning.Grid_Scan(stdscr, input, cwd,
+        #                               temporary_dir, debug, curses,
+        #                               main_logger)
+        # elif input['Setup']['Type'] == "Random":
+        #     scan = scanning.Random_Scan(stdscr, input, cwd,
+        #                                 temporary_dir, debug, curses,
+        #                                 main_logger)
+        # elif input['Setup']['Type'] == "MCMC":
+        #     scan = scanning.MCMC_Scan(stdscr, input, cwd,
+        #                               temporary_dir, debug, curses,
+        #                               main_logger)
+        # elif input['Setup']['Type'] == "MLS":
+        #     scan = scanning.MLS_Scan(stdscr, input, cwd,
+        #                              temporary_dir, debug, curses,
+        #                              main_logger)
+        # elif input['Setup']['Type'] == "MCMC_NN":
+        #     scan = scanning.MCMC_NN_Scan(stdscr, input, cwd,
+        #                                  temporary_dir, debug, curses,
+        #                                  main_logger)
+        # else:
+        #     main_logger.error("Scan Type %s not defined" % input['Type'])
+
+        if (not scan_initialised):  
+            main_logger.error("Scan Type %s not defined" % input['Setup']['Type'])
+            sys.exit()
         scan.run(main_logger)
 
     if curses:    # in order to keep the last information on the screen

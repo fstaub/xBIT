@@ -1,16 +1,10 @@
+# standard packages
 import os
-# import math
-# import itertools
 import xslha
-# import subprocess
-# import sys
 import shutil
-# import random
-# import six
 import multiprocessing as mp
-# import sys
 
-
+# modules of xBIT
 import package.screen as screen
 import package.debug  as debug
 
@@ -47,57 +41,6 @@ class HepTool:
 
 def RunSPheno(path, bin, input, output, spc_file, dir, log):
     debug.command_line_log(path + bin + " " + input, log)
-
-
-# def RunHiggs(path, bin, input, output, spc_file, dir, log):
-#     debug.command_line_log(path + bin + " " + input + " " + dir + "/", log)
-#     # Reading the Output file
-#     if os.path.exists(bin + "_results.dat"):
-#         for line in open(bin + "_results.dat"):
-#             li = line.strip()
-#             if not li.startswith("#"):
-#                 hb_res = list(filter(None, line.rstrip().split(' ')))
-#         # Append output to the SPheno file
-#         debug.command_line_log("echo \"Block " + bin.upper() + " # \" >> "
-#                                + spc_file, log)
-#         for i in range(1, len(hb_res)):
-#             debug.command_line_log("echo \"" + str(i) + " " + str(hb_res[i])
-#                                    + " # \" >> " + spc_file, log)
-#     else:
-#         log.error("HiggsBounds output not written!",
-#                   path + bin + " " + input + " " + dir)
-
-# def RunVevacious(path, bin, input, output, spc_file, dir, log):
-#     try:
-#         shutil.copy(input, path)
-#         os.chdir(path)
-#         debug.command_line_log(bin, log)
-#         shutil.copyfile(input, os.path.join(dir, input))
-#         os.chdir(dir)
-#     except Exception as e: 
-#         log.error("Problem occured running Vevacious!")        
-#         log.error(e)
-
-
-                 
-
-# def RunMicrOmegas(path, bin, input, output, spc_file, dir, log):
-#     # shutil.copyfile(input, os.path.join(path, input))
-#     # os.chdir(path)
-#     # subprocess.call("./"+bin, shell=True, stdout=std_out, stderr=std_err)
-#     # Using global paths to call micromegas seems to work finally,
-#     # i.e. we can run it as any other code
-#     debug.command_line_log(path + bin, log)
-#     # Glue output to the SPheno file
-#     if os.path.exists(output):
-#         debug.command_line_log("echo \"Block DARKMATTER # \" >> "
-#                                + os.path.join(dir, spc_file), log)
-#         debug.command_line_log("cat " + output + " >> "
-#                                + os.path.join(dir, spc_file), log)
-#     else:
-#         log.error("MicrOmegas output not written!")
-# #    os.chdir(dir)
-
 
 class Runner():
     def __init__(self, scan, log):
@@ -173,17 +116,6 @@ class Runner():
                             self.scan.all_invalid
                             )
 
-    # def process_queue(self, scan, l1, l2, l3):
-    #     # there is most likely a nicer way to write that;
-    #     # maybe getting rid of all mp.Queues to store results
-    #     # in multicore scans and using only Manager
-    #     while not scan.input_and_observables.empty():
-    #         l1.append(scan.input_and_observables.get())
-    #     while not scan.valid_points.empty():
-    #         l2.append(scan.valid_points.get())
-    #     while not scan.invalid_points.empty():
-    #         l3.append(scan.invalid_points.get())
-
     # run points
     def run_all_points(self, scan, dir, nr, log, l1=None, l2=None, l3=None):
         log.info("Started with running the points")
@@ -198,11 +130,6 @@ class Runner():
                     log.info("")
                     log.info("%i Points of %i Points left"
                              % (scan.all_points.qsize(), scan.setup['Points']))
-
-                # if l1 is not None:
-                #     # in order to prevent a deadlock of the queue
-                #     # for large data samples
-                #     self.process_queue(scan, l1, l2, l3)
 
             # running a point
             try:
@@ -255,26 +182,6 @@ class Runner():
                 except Exception as e:
                     print(e)
 
-            # if scan.codes['HiggsBounds'] is True:
-            #         scan.hb.run(scan.settings['SPheno']['Output'],
-            #                     temp_dir, log)
-            #         if self.bad_point_check(scan, log):
-            #             return
-            # if scan.codes['HiggsSignals'] is True:
-            #         scan.hs.run(scan.settings['SPheno']['Output'],
-            #                     temp_dir, log)
-            #         if self.bad_point_check(scan, log):
-            #             return
-            # if scan.codes['MicrOmegas'] is True:
-            #     # Check for the correct LSP
-            #     spc = xslha.read(scan.settings['SPheno']['Output'])
-            #     if spc.Value('LSP', [1]) == scan.settings['MicrOmegas']['DM_Candidate']:
-            #         scan.mo.run(scan.settings['SPheno']['Output'], temp_dir, log)
-            # if scan.codes['Vevacious'] is True:
-            #     scan.vevacious.run(scan.settings['Vevacious']['Output'], temp_dir, log)                    
-
-
-
             if scan.Short:
                 spc = xslha.read(scan.settings['SPheno']['Output'])
                 debug.command_line_log("echo " + ' '.join(map(str,point)) + ' ' + ' '.join(map(str,[spc.Value(obs['SLHA'][0], obs['SLHA'][1]) for obs in scan.observables.values()])) + " >> " + output_file, log)
@@ -303,7 +210,7 @@ class Runner():
 #            scan.invalid_points.put(point)
             list_invalid.append(point)
             
-            #### Why on earth are we putting dead input files in the output?
+            # We keep the non-valid points for plotting
             if not scan.Short:
 #                debug.command_line_log("echo " + ' '.join(map(str,point)) + " >> " + output_file, log)
 #                

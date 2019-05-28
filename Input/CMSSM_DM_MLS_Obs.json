@@ -1,6 +1,6 @@
 {
   "Setup": {
-    "Settings": "MSSM_local.json",
+    "Settings": "MSSM.json",
     "Name": "m0_m12_DM_Obs",
     "Type": "MLS",
     "Points": 100,
