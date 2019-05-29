@@ -67,6 +67,4 @@ where the INPUTFILE contains all information to define a scan. An example for a 
 ```
 
 ## Note
-This package is completely independent of another scanning tool which comes with a bunch of 'BITs'. Nevertheless, the name was chosen on purpose to point out that it follows a philosophy which is orthogonal to this other tool: not everybody has a supercomputer at hand, and some people might want to study more complicated models than the MSSM or SSM. 
-
-
+This package is completely independent of another scanning tool which comes with a bunch of 'BITs'. Nevertheless, the name was chosen on purpose to point out that it follows a philosophy which is orthogonal to this other tool.
