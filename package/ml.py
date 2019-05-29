@@ -9,12 +9,6 @@ from torch.autograd import Variable
 
 import package.screen as screen
 
-# questions:
-#  - what's the best way of using the NN to propose new points?
-#  - check/improve the routine for early stopping
-#  - if we only use standard NNs:
-#     is pytorch necessary or shall we write something own?
-
 
 # -------------------------------------
 # the basic class for neural networks

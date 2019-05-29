@@ -145,33 +145,39 @@ class NewScan(Scan, NN):
             increase += 1
             if increase > 100:
                 break
-        best_lh = max(best_lh)
-        count = 1
-        count_all = 0
-        self.log.info("Best LH proposed by NN: %s" % (str(best_lh)))
-        while count < int(0.9 * good_points):
-            count_all = count_all + 1            
-            for l, x in zip(likelihood, x_try):
-                if 2. > l > limit_lh(count_all) * best_lh:  # 2 > might be necessary for the LH fit because some good points are predicted to have slighlyt higher LH;
-                    self.log.debug("Accepted point %i by NN: LH: %s"
-                                   % (count, str(l)))
-                    if count == 1:
-                        new_good_points = [x]
-                    else:
-                        new_good_points = np.concatenate((new_good_points, [x]))
-                    count = count + 1
-                    if count > int(0.9 * good_points):
-                        break
-            self.log.debug("Accepted Points by NN: %i after %i iterations" % (count, count_all))            
-            x_try = self.generate_parameters(self.variables, max(increase*points,100000))            
-            likelihood, x_try = self.guess_LH(x_try)
-            # print("x_try", likelihood)
+        if len(best_lh) > 0:
+            best_lh = max(best_lh)
+            count = 1
+            count_all = 0
+            self.log.info("Best LH proposed by NN: %s" % (str(best_lh)))
+            while count < int(0.9 * good_points):
+                count_all = count_all + 1            
+                for l, x in zip(likelihood, x_try):
+                    if 2. > l > limit_lh(count_all) * best_lh:  # 2 > might be necessary for the LH fit because some good points are predicted to have slighlyt higher LH;
+                        self.log.debug("Accepted point %i by NN: LH: %s"
+                                    % (count, str(l)))
+                        if count == 1:
+                            new_good_points = [x]
+                        else:
+                            new_good_points = np.concatenate((new_good_points, [x]))
+                        count = count + 1
+                        if count > int(0.9 * good_points):
+                            break
+                self.log.debug("Accepted Points by NN: %i after %i iterations" % (count, count_all))            
+                x_try = self.generate_parameters(self.variables, max(increase*points,100000))            
+                likelihood, x_try = self.guess_LH(x_try)
+                # print("x_try", likelihood)
 
-        # add 10% random points
-        new_x = np.concatenate((
-            self.generate_parameters(self.variables, int(0.1 * good_points)),
-            new_good_points
-        ))
+            # add 10% random points
+            new_x = np.concatenate((
+                self.generate_parameters(self.variables, int(0.1 * good_points)),
+                new_good_points
+            ))
+        else:
+            # no valid points found by the NN! That's likely an overconstraint from the classifier. 
+            # in order to contue: let's take 100% random points
+            self.log.info("No valid points predicted by the NN!")
+            new_x = self.generate_parameters(self.variables, good_points)
         return new_x
 
     def min_Delta_LH(self, lh, xval):

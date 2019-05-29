@@ -192,7 +192,7 @@ class Runner():
                 debug.command_line_log("echo \"ENDOFPARAMETERPOINT\" >> "
                                    + output_file, log)
                 
-            if scan.setup['Type'] in ["MLS", "MLS1", "MCMC", "MCMC_NN"]:
+            if len(scan.observables) > 0:
                 log.info('Reading spectrum file')
                 spc = xslha.read(scan.settings['SPheno']['OutputFile'])
                 try:
