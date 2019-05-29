@@ -1,5 +1,5 @@
 # xBIT
-an easy to use scanning tool with neural networks support
+an easy to use scanning tool with machine learning abilities
 
 ## Purpose
 ``xBIT`` is a tool for performing parameter scans in beyond the Standard Model (BSM) theories. It's written in ``python`` and fully open source. The main focus was to provide an easy to use tool to perform the daily tasks of a BSM phenomenologist: exploring the parameter space of new models. It was developed under the impression of the SARAH/SPheno framework, but should be useable with other tools that use the SLHA format to transfer 
