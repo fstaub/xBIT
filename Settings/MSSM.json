@@ -7,8 +7,8 @@
 
   "MicrOmegas": {
      "Command": "/home/fnstaub/Data/HEP_Software/micromegas_4.3.2/MSSM_SARAH/CalcOmega",
-     "OutputFile":  "omg.out",
-     "DM_Candidate":     1000022
+     "OutputFile": "omg.out",
+     "DM_Candidate": 1000022
   },
 
   "HiggsBounds": {

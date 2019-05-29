@@ -6,7 +6,7 @@ class NewTool():
     def __init__(self):
         self.name = "HiggsSignals" 
 
-    def run(self,path, bin, input, output, spc_file, dir, log):
+    def run(self, settings, spc_file, temp_dir, log):
         # Settings
         command = settings['Command']
         options = settings['Options']

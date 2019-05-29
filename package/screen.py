@@ -1,8 +1,11 @@
-# import curses
+import curses
 import time
 import datetime
 
 def show_logo(stdscr):
+    # update intendations
+    curses.resizeterm(150, 45)
+
     stdscr.clear()
     stdscr.addstr(1, 0, "       __________.______________  ")
     stdscr.addstr(2, 0, "__  __\______   \   \__    ___/   ")

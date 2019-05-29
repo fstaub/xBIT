@@ -1,5 +1,9 @@
 from package.scanning import Scan as Scan
 
+from package.aux import LINEAR as LINEAR
+from package.aux import LINEAR_DIFF as LINEAR_DIFF
+from package.aux import LOG as LOG
+
 scan_name = "Random"
 
 class NewScan(Scan):

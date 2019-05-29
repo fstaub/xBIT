@@ -134,6 +134,8 @@ def set_default(input, log):
     # Observables
     if 'Observables' not in input:
         input['Observables'] = {}
+    if 'Points' not in input['Setup']:
+        input['Setup']['Points'] = 1        
 
     # Setting of NN
     if 'ML' not in input:
