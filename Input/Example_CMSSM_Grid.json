@@ -14,10 +14,10 @@
   },
 
   "Variables": {
-    "0": "LINEAR(100,5000,10)",
-    "1": "LINEAR(100,5000,10)",
-    "2": "LINEAR(5,50,10)",
-    "3": "LINEAR(-7500,7500,10)"
+    "0": "np.geomspace(100, 5000, num=10)",
+    "1": "np.geomspace(100, 5000, num=10)",
+    "2": "np.linspace(5, 50, num=10)",
+    "3": "np.linspace(-7500, 7500, num=10)"
   },
 
   "Blocks": {

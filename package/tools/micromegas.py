@@ -7,7 +7,7 @@ class NewTool():
     def __init__(self):
         self.name = "MicrOmegas" 
 
-    def run(self,settings, spc_file, temp_dir, log):
+    def run(self, settings, spc_file, temp_dir, log):
         # Settings
         command = settings['Command']
         output_file = settings['OutputFile']

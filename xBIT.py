@@ -68,68 +68,6 @@ def parse_input(file, log):
     return d
 
 
-####################################################################################
-# MAIN PROGRAM
-####################################################################################
-
-# -------------------------------------
-# Initialisation
-# -------------------------------------
-
-# Try to open input file
-try:
-    parser = argparse.ArgumentParser(
-        description='Please give the name of the input file.')
-    parser.add_argument('inputfiles',
-                        metavar='File', type=str,
-                        nargs='+', help='an integer for the accumulator')
-    parser.add_argument("--short", help="Store output in short form",
-                        action="store_true")
-    parser.add_argument("--debug", help="write debug information",
-                        action="store_true")
-    parser.add_argument("--clean", help="clean temporary directory",
-                        action="store_true")
-    parser.add_argument("--quiet", help="use minimal screen output",
-                        action="store_true")
-    parser.add_argument("--Name", type=str, help='name of the scan')
-    parser.add_argument("--DensityPenality", type=bool,
-                        help='penaluity for points too close')
-    parser.add_argument("--TrainLH", type=bool, help='train the likelihood')
-    parser.add_argument("--Classifier", type=bool,
-                        help='Include classifier for valid/invalid points')
-    parser.add_argument("--Points", type=int, help='number of points')
-    parser.add_argument("--Cores", type=int, help='number of cores')
-    parser.add_argument("--Iterations", type=int, help='number of iterations')
-    parser.add_argument("--Epochs", type=int,
-                        help='Maximal numbers of epochs in training')
-    parser.add_argument("--LR", type=float,
-                        help='Learning Rate for Neutral Network')
-    parser.add_argument("--Neurons", type=str,
-                        help='Number of neurons in hidden layer')
-    parser.add_argument("--curses",
-                        help="use curses to for nice screen output",
-                        action="store_true")
-    args = parser.parse_args()
-except:
-    print("Please give an input file")
-
-# set up paths
-cwd = os.getcwd()
-
-if args.clean:
-    print("Cleaning temporary directory")
-    shutil.rmtree(os.path.join(cwd, "Temp"))
-    os.makedirs(os.path.join(cwd, "Temp"))
-
-timestamp = str(time.time()).replace(".", "")
-temporary_dir = os.path.join(cwd, "Temp", timestamp)
-os.makedirs(temporary_dir)
-
-main_logger = debug.new_logger(args.debug, args.curses,
-                               "main", temporary_dir+"/xBIT.log")
-main_logger.info('Starting xBIT with then following arguments: %s' % args)
-
-
 def set_default(input, log):
     # Observables
     if 'Observables' not in input:
@@ -206,15 +144,16 @@ def check_terminal_arguments(input, args, log):
 # ----------------------------------------------------------------------------
 
 
-def main(stdscr, debug, curses):
-    if curses:
+def main(stdscr, config):
+    config.screen = stdscr
+    if config.cursesQ:
         stdscr.clear()
         screen.show_logo(stdscr)
 
-    for i in args.inputfiles:
-        inputs = parse_input(i, main_logger)
-        inputs = set_default(inputs, main_logger)
-        inputs = check_terminal_arguments(inputs, args, main_logger)
+    for i in config.inputfiles:
+        inputs = parse_input(i, config.log)
+        inputs = set_default(inputs, config.log)
+        inputs = check_terminal_arguments(inputs, args, config.log)
 
         # checking for the correct scan
         scan_initialised = False
@@ -222,16 +161,14 @@ def main(stdscr, debug, curses):
         for new_scan in all_scans:
             if (new_scan[:2] != "__"):
                 scan_class = importlib.import_module("package.scans."+new_scan[:-3])
-                # new_tool = new_class.NewTool()
                 if scan_class.scan_name == inputs['Setup']['Type']:
-                    scan = scan_class.NewScan(inputs, temporary_dir, 
-                                    [cwd, stdscr, debug, curses, main_logger])
+                    scan = scan_class.NewScan(inputs, config)
                     scan_initialised = True
 
         if (not scan_initialised):  
-            main_logger.error("Scan Type %s not defined" % inputs['Setup']['Type'])
+            config.log.error("Scan Type %s not defined" % inputs['Setup']['Type'])
             sys.exit()
-        scan.run()
+        scan.run_with_time()
 
     if curses:    # in order to keep the last information on the screen
         mypad_contents = []
@@ -240,9 +177,73 @@ def main(stdscr, debug, curses):
         return mypad_contents
 
 
-if args.curses and not args.debug:
+####################################################################################
+# MAIN PROGRAM
+####################################################################################
+
+# Try to open input file
+try:
+    parser = argparse.ArgumentParser(
+        description='Please give the name of the input file.')
+    parser.add_argument('inputfiles',
+                        metavar='File', type=str,
+                        nargs='+', help='an integer for the accumulator')
+    parser.add_argument("--short", help="Store output in short form",
+                        action="store_true")
+    parser.add_argument("--debug", help="write debug information",
+                        action="store_true")
+    parser.add_argument("--clean", help="clean temporary directory",
+                        action="store_true")
+    parser.add_argument("--quiet", help="use minimal screen output",
+                        action="store_true")
+    parser.add_argument("--Name", type=str, help='name of the scan')
+    parser.add_argument("--DensityPenality", type=bool,
+                        help='penaluity for points too close')
+    parser.add_argument("--TrainLH", type=bool, help='train the likelihood')
+    parser.add_argument("--Classifier", type=bool,
+                        help='Include classifier for valid/invalid points')
+    parser.add_argument("--Points", type=int, help='number of points')
+    parser.add_argument("--Cores", type=int, help='number of cores')
+    parser.add_argument("--Iterations", type=int, help='number of iterations')
+    parser.add_argument("--Epochs", type=int,
+                        help='Maximal numbers of epochs in training')
+    parser.add_argument("--LR", type=float,
+                        help='Learning Rate for Neutral Network')
+    parser.add_argument("--Neurons", type=str,
+                        help='Number of neurons in hidden layer')
+    parser.add_argument("--curses",
+                        help="use curses to for nice screen output",
+                        action="store_true")
+    args = parser.parse_args()
+except:
+    print("Please give an input file")
+
+# set up paths
+cwd = os.getcwd()
+
+if args.clean:
+    print("Cleaning temporary directory")
+    shutil.rmtree(os.path.join(cwd, "Temp"))
+    os.makedirs(os.path.join(cwd, "Temp"))
+
+timestamp = str(time.time()).replace(".", "")
+temporary_dir = os.path.join(cwd, "Temp", timestamp)
+os.makedirs(temporary_dir)
+
+
+# start logger 
+main_logger = debug.new_logger(args.debug, args.curses,
+                               "main", temporary_dir+"/xBIT.log")
+main_logger.info('Starting xBIT with then following arguments: %s' % args)
+
+# store configuration in separated class 
+config = debug.Config(args.inputfiles, cwd, temporary_dir, args.debug, args.curses, main_logger)
+
+
+
+if config.cursesQ and not config.debugQ:
     # fancy screen output using curses
-    screenout = curses.wrapper(main, args.debug, args.curses)
+    screenout = curses.wrapper(main, config)
     for i in screenout:
         print(i.decode("utf-8"))
 else:
@@ -253,4 +254,4 @@ else:
     print(" >    < |    |   \   | |    |     ")
     print("/__/\_ \|______  /___| |____|     ")
     print("                                  ")
-    main("nix", args.debug, args.curses)
+    main("nix", config)

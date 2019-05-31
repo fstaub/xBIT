@@ -46,29 +46,30 @@ def RunSPheno(settings, spc_file, dir, log):
 class Runner():
     def __init__(self, scan, log):
         log.info('Initialise runner class. Number of cores: %s'
-                 % str(scan.setup['Cores']))
+                 % str(scan.inputs['Setup']['Cores']))
+
         self.scan = scan
 
-        self.all_valid = []
-        self.all_invalid = []
-        self.all_data = []
+        # self.all_valid = []
+        # self.all_invalid = []
+        # self.all_data = []
 
         # create temporary directories
-        for x in range(scan.setup['Cores']):
-            os.makedirs(os.path.join(scan.temp_dir, "id" + str(x)))
+        for x in range(scan.inputs['Setup']['Cores']):
+            os.makedirs(os.path.join(scan.config.temp_dir, "id" + str(x)))
 
         # setup_loggers:
         self.loggers = [
-            debug.new_logger(scan.debug, scan.curses, "id" + str(x),
-                             os.path.join(scan.temp_dir, "id" + str(x))
+            debug.new_logger(scan.config.debugQ, scan.config.cursesQ, "id" + str(x),
+                             os.path.join(scan.config.temp_dir, "id" + str(x))
                              + "/id" + str(x) + ".log")
-            for x in range(scan.setup['Cores'])
+            for x in range(scan.inputs['Setup']['Cores'])
         ]
 
     def run(self, log, sample=[]):
         if len(sample) < 1:
-            self.all_parameter_variables = self.scan.generate_parameters(
-                self.scan.variables, self.scan.setup['Points']
+            self.all_parameter_variables = self.scan.generate_parameter_points(
+                self.scan.inputs['Variables'], self.scan.inputs['Setup']['Points']
             )
         else:
             self.all_parameter_variables = sample
@@ -77,7 +78,7 @@ class Runner():
         for x in self.all_parameter_variables:
             self.scan.all_points.put(x)
 
-        if self.scan.setup['Cores'] > 1:
+        if self.scan.inputs['Setup']['Cores'] > 1:
             self.multicore(log)
         else:
             self.singlecore(log)
@@ -85,7 +86,7 @@ class Runner():
     def multicore(self, log):
         # sample is not empty in case that the NN proposes the next points
         log.info('Starting multcore module. Number of cores: %s'
-                 % str(self.scan.setup['Cores']))
+                 % str(self.scan.inputs['Setup']['Cores']))
         with mp.Manager() as manager:
             List_all = manager.list()
             List_valid = manager.list()
@@ -95,10 +96,10 @@ class Runner():
             processes = [mp.Process(
                 target=self.run_all_points,
                 args=(self.scan,
-                      os.path.join(self.scan.temp_dir, "id" + str(x)),
+                      os.path.join(self.scan.config.temp_dir, "id" + str(x)),
                       x, self.loggers[x],
                       List_all, List_valid, List_invalid))
-                for x in range(self.scan.setup['Cores'])]
+                for x in range(self.scan.inputs['Setup']['Cores'])]
             for p in processes:
                 p.start()
             for p in processes:
@@ -110,7 +111,7 @@ class Runner():
 
     def singlecore(self, log):
         self.run_all_points(self.scan,
-                            os.path.join(self.scan.temp_dir, "id0"), 0,
+                            os.path.join(self.scan.config.temp_dir, "id0"), 0,
                             self.loggers[0],
                             self.scan.all_data,
                             self.scan.all_valid,
@@ -124,13 +125,13 @@ class Runner():
 
             # 'progress-bar'
             if nr == 0:
-                if scan.curses:
-                    screen.update_count(scan.screen, scan.all_points.qsize(),
-                                        scan.setup['Points'])
+                if scan.config.cursesQ:
+                    screen.update_count(scan.config.screen, scan.all_points.qsize(),
+                                        scan.inputs['Setup']['Points'])
                 else:
                     log.info("")
                     log.info("%i Points of %i Points left"
-                             % (scan.all_points.qsize(), scan.setup['Points']))
+                             % (scan.all_points.qsize(), scan.inputs['Setup']['Points']))
 
             # running a point
             try:
@@ -144,19 +145,19 @@ class Runner():
                 continue  # maybe, there was another problem than an empty queue?!
                           # let's try to continue instead of stopping
 
-        if scan.curses:
-            screen.update_count(scan.screen, 0, scan.setup['Points'])
+        if scan.config.cursesQ:
+            screen.update_count(scan.config.screen, 0, scan.inputs['Setup']['Points'])
 
     def bad_point_check(self, scan, log):
-        if scan.setup['Interrupt'][0] == "True":
+        if scan.inputs['Setup']['Interrupt'][0] == "True":
             values = []
             spc = xslha.read(scan.settings['SPheno']['OutputFile'])
-            for obs in scan.observables.values():
+            for obs in scan.inputs['Observables'].values():
                 try:
                     values.append(spc.Value(obs['SLHA'][0], obs['SLHA'][1]))
                 except:
                     values.append(obs['MEAN'])
-            if scan.likelihood(values) < scan.setup['Interrupt'][1]:  # likelihood too small
+            if scan.likelihood(values) < scan.inputs['Setup']['Interrupt'][1]:  # likelihood too small
                 log.info('Stopping further calculations for this point'
                          + ' because of bad likelihood')
                 return True
@@ -169,8 +170,8 @@ class Runner():
                   list_all, list_valid, list_invalid, log):
         log.info('Running point with input parameters: %s'
                  % str(point))
-        if scan.curses:
-            screen.current_point_core(scan.screen, point, int(temp_dir[-1]))
+        if scan.config.cursesQ:
+            screen.current_point_core(scan.config.screen, point, int(temp_dir[-1]))
         scan.write_lh_file(point, temp_dir, scan.settings['SPheno']['InputFile'])
         scan.spheno.run(scan.settings['SPheno']['OutputFile'], temp_dir, log)
         if self.bad_point_check(scan, log):
@@ -185,37 +186,32 @@ class Runner():
 
             if scan.Short:
                 spc = xslha.read(scan.settings['SPheno']['OutputFile'])
-                debug.command_line_log("echo " + ' '.join(map(str,point)) + ' ' + ' '.join(map(str,[spc.Value(obs['SLHA'][0], obs['SLHA'][1]) for obs in scan.observables.values()])) + " >> " + output_file, log)
+                debug.command_line_log("echo " + ' '.join(map(str,point)) + ' ' + ' '.join(map(str,[spc.Value(obs['SLHA'][0], obs['SLHA'][1]) for obs in scan.inputs['Observables'].values()])) + " >> " + output_file, log)
             else:
                 debug.command_line_log("cat " + scan.settings['SPheno']['OutputFile']
                                    + " >> " + output_file, log)
                 debug.command_line_log("echo \"ENDOFPARAMETERPOINT\" >> "
                                    + output_file, log)
                 
-            if len(scan.observables) > 0:
+            if len(scan.inputs['Observables']) > 0:
                 log.info('Reading spectrum file')
                 spc = xslha.read(scan.settings['SPheno']['OutputFile'])
                 try:
                     list_all.append(
                         [point, [spc.Value(obs['SLHA'][0], obs['SLHA'][1])
-                                 for obs in scan.observables.values()]])
+                                 for obs in scan.inputs['Observables'].values()]])
                     list_valid.append(point)
                     log.debug("Observables: %s"
                               % str([spc.Value(obs['SLHA'][0], obs['SLHA'][1])
-                                    for obs in scan.observables.values()]))
+                                    for obs in scan.inputs['Observables'].values()]))
                 except:
-#                    scan.invalid_points.put(point)
                     list_invalid.append(point)
                     log.warning('Observable(s) missing in SLHA file')
         else:
-#            scan.invalid_points.put(point)
             list_invalid.append(point)
             
             # We keep the non-valid points for plotting
             if not scan.Short:
-#                debug.command_line_log("echo " + ' '.join(map(str,point)) + " >> " + output_file, log)
-#                
-#            else:
                 debug.command_line_log("cat " + scan.settings['SPheno']['InputFile']
                                    + " >> " + output_file, log)
                 debug.command_line_log("echo \"ENDOFPARAMETERPOINT\" >> "

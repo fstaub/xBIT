@@ -45,3 +45,15 @@ def command_line_log(command, log):
     # log.debug(out)
     if err != b'':
         log.error(err.decode("utf-8"))
+
+class Config():
+    def __init__(self, inputfiles, main_dir, temp_dir, debug, curses, log):
+        self.inputfiles = inputfiles
+        self.main_dir = main_dir 
+        self.temp_dir = temp_dir
+        self.log = log 
+        self.debugQ = debug 
+        self.cursesQ = curses 
+
+        self.screen = "nix"         
+        

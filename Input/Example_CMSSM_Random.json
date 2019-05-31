@@ -15,10 +15,10 @@
   },
 
   "Variables": {
-    "0": "LINEAR(100,5000)",
-    "1": "LINEAR(100,5000)",
-    "2": "LINEAR(5,50)",
-    "3": "LINEAR(-7500,7500)"
+    "0": "np.exp(np.random.uniform(np.log(100),np.log(5000)))",
+    "1": "np.exp(np.random.uniform(np.log(100),np.log(5000)))",
+    "2": "np.random.uniform(5, 50)",
+    "3": "np.random.uniform(-7500, 7500)"
   },
 
   "Blocks": {

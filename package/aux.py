@@ -1,31 +1,33 @@
 import math
 import random
+import numpy as np
+
+# # Log and linear distributions; what else?
+# def LINEAR(min, max, steps=0):
+#     if steps > 0:
+#         # return [1.0 * min
+#         #         + 1.0 * (max - min) * (a - 1) / (1.0 * (steps - 1))
+#         #         for a in range(1, steps + 1)]
+#         return np.linspace(min, max, num = steps)
+#     else:
+#         return np.random.uniform(min, max)
+#         #return random.uniform(min, max)
 
 
-# Log and linear distributions; what else?
-def LINEAR(min, max, steps=0):
-    if steps > 0:
-        return [1.0 * min
-                + 1.0 * (max - min) * (a - 1) / (1.0 * (steps - 1))
-                for a in range(1, steps + 1)]
-    else:
-        return random.uniform(min, max)
-
+# def LOG(min, max, steps=0):
+#     if steps > 0:
+#         # return [math.exp(math.log(min)
+#         #         + (math.log(max)-math.log(min))*(a-1)/((steps-1)))
+#         #         for a in range(1, steps + 1)]
+#         return np.logspace(min, max, num = steps)
+#     else:
+#         # return math.exp(
+#         #     math.log(min) 
+#         #     + (math.log(max) - math.log(min)) * random.uniform(0, 1))
+#         return np.random.log(min, max)
 
 def LINEAR_DIFF(a, b):
     return 1. * abs(a - b)
-
-
-def LOG(min, max, steps=0):
-    if steps > 0:
-        return [math.exp(math.log(min)
-                + (math.log(max)-math.log(min))*(a-1)/((steps-1)))
-                for a in range(1, steps + 1)]
-    else:
-        return math.exp(
-            math.log(min) 
-            + (math.log(max) - math.log(min)) * random.uniform(0, 1))
-
 
 # gauss likelihood: do we need something else?
 def gauss(val, m, s):

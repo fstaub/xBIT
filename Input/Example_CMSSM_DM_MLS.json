@@ -16,8 +16,8 @@
   },
 
   "Variables": {
-      "0": "LINEAR(100,2500)",
-      "1": "LINEAR(100,2500)"
+      "0": "np.random.uniform(100,2500)",
+      "1": "np.random.uniform(100,2500)"
   },
 
   "Observables": {

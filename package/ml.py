@@ -116,7 +116,7 @@ class NN():
                     screen.train_nn(self.screen, epoch, loss)
                 log.debug("Epoch: %i;  loss: %f" % (epoch, loss))
 
-            # Primitive early stopping
+            # Simple implementation of early stopping
             if loss < best:
                 best = loss
                 wait = 0

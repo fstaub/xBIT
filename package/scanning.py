@@ -2,26 +2,12 @@ import json
 import os
 import shutil
 import time
-# import datetime
 import multiprocessing as mp
 import math
-# import collections
 import itertools
-# import numpy as np
-# import curses
 from six.moves import queue
 import importlib
 
-# for the NN
-# import torch
-# import torch.nn as nn
-# import torch.optim as optim
-# from torch.autograd import Variable
-
-# home-brewed
-# from package.aux import LINEAR as LINEAR
-# from package.aux import LINEAR_DIFF as LINEAR_DIFF
-# from package.aux import LOG as LOG
 from package.aux import gauss as gauss
 from package.aux import logL as logL
 from package.aux import exp_safe as exp_safe
@@ -42,48 +28,36 @@ import package.screen as screen
 class Scan:
     """Main scanner class"""
 
-    def __init__(self, inputs, temp_dir, config):
-        # Current xBIT configuration
-        self.main_dir = config[0]
-        self.screen = config[1]
-        self.debug = config[2]
-        self.curses = config[3]
-        self.log = config[4]
-        self.temp_dir = temp_dir
-
-        self.log.info('Initialise scan: %s' % inputs['Setup']['Name'])        
-
-        # main information about the scan
-        self.setup = inputs['Setup']
-        self.codes = inputs['Included_Codes']
-        self.blocks = inputs['Blocks']
-        self.observables = inputs['Observables']
-        self.variables = inputs['Variables']
-        self.ml = inputs['ML']
-
+    def __init__(self, inputs, config):
+        config.log.info('Initialise scan: %s' % inputs['Setup']['Name'])        
+        
+        self.inputs = inputs 
+        self.config = config
         self.Short = inputs['Short']
 
         # Variable to store all commands to execute the programs
         self.run_tools = []
 
-
-        self.distance_penalty = True
-
-        self.scalings = ["id"] * len(self.observables)
+        # Variable to save the scaling of all observables
+        self.scalings = ["id"] * len(self.inputs['Observables'])
 
         # for input parameter and values of observables
         self.all_data = []
 
         # String to Bool
-        for c in self.codes:
-            self.codes[c] = eval(self.codes[c])
+        for c in self.inputs['Included_Codes']:
+            self.inputs['Included_Codes'][c] = eval(self.inputs['Included_Codes'][c])
 
-        # load the settings-file
-        self.parse_settings(self.setup['Settings'])
+        # load the settings-file and set up the directories
+        self.parse_settings(self.inputs['Setup']['Settings'])
         self.set_up_codes()
         self.make_out_dir()
-        self.output_file = os.path.join(self.main_dir, "Output",
-                                        self.setup['Name'], "SpectrumFiles")
+        self.output_file = os.path.join(self.config.main_dir, "Output",
+                                        self.inputs['Setup']['Name'], "SpectrumFiles")
+
+        # storing all valid and invalid points
+        self.all_valid = []
+        self.all_invalid = []                                          
 
         if inputs['Setup']['Cores'] > 1:
             # initialise queues needed for multicore runs
@@ -97,26 +71,23 @@ class Scan:
             self.valid_points = queue.Queue()
             self.invalid_points = queue.Queue()
 
-        # for training the classifier
-        self.all_valid = []
-        self.all_invalid = []
 
         # Initialse Runner class
-        self.runner = running.Runner(self, self.log)
+        self.runner = running.Runner(self, self.config.log)
 
     def parse_settings(self, file):
         """ Parse the settings file which contains
             the paths,  executables,  etc. """
-        self.log.info('Parse Settings file: %s' % file)
+        self.config.log.info('Parse Settings file: %s' % file)
         with open("Settings/" + file) as json_data:
             d = json.load(json_data)
         self.settings = d
-        self.log.debug('Settings: %s' % str(d))
+        self.config.log.debug('Settings: %s' % str(d))
 
     def set_up_codes(self):
         """ Set up the HEP Tools needed in the scan """
         self.spheno = running.HepTool("SPheno", self.settings['SPheno'],
-                                      running.RunSPheno, self.log)
+                                      running.RunSPheno, self.config.log)
         
         # import all other tools
         new_tools = os.listdir("package/tools")
@@ -124,15 +95,15 @@ class Scan:
             if (new[:2] != "__"):
                 new_class = importlib.import_module("package.tools."+new[:-3])
                 new_tool = new_class.NewTool()
-                if self.codes[new_tool.name]:
+                if self.inputs['Included_Codes'][new_tool.name]:
                     self.run_tools.append(running.HepTool(new_tool.name,
                                        self.settings[new_tool.name],
-                                       new_tool.run, self.log))
+                                       new_tool.run, self.config.log))
 
     def likelihood(self, x):
         """ calculate likelihood """
         lh = 1.
-        for i, obs in enumerate(self.observables.values()):
+        for i, obs in enumerate(self.inputs['Observables'].values()):
             if self.scalings[i] == "id":
                 lh = lh * gauss(x[i], obs["MEAN"], obs["VARIANCE"])
             elif self.scalings[i] == "log":
@@ -141,8 +112,8 @@ class Scan:
 
     def make_out_dir(self):
         """ Create output directory to store scan results"""
-        self.out_dir = os.path.join(self.main_dir, "Output",
-                                    self.setup['Name'])
+        self.out_dir = os.path.join(self.config.main_dir, "Output",
+                                    self.inputs['Setup']['Name'])
         if os.path.exists(self.out_dir):
             shutil.rmtree(self.out_dir)
         os.makedirs(self.out_dir)
@@ -150,22 +121,34 @@ class Scan:
     def write_lh_file(self, point, dir, name):
         """ write Les Houches input file for given parameter point """
         lh = open(os.path.join(dir, name), "w+")
-        for current_block in self.blocks:
+        for current_block in self.inputs['Blocks']:
             xslha.write_les_houches(current_block,
-                                    self.blocks[current_block], point, lh)
+                                    self.inputs['Blocks'][current_block], point, lh)
         lh.close
 
     def start_run(self):
         self.start_time = time.time()
-        self.log.info('Running scan %s' % str(self.setup['Name']))
-        if self.curses:
-            screen.show_setup(self.screen, self.setup, self.codes)
+        self.config.log.info('Running scan %s' % str(self.inputs['Setup']['Name']))
+        if self.config.cursesQ:
+            screen.show_setup(self.config.screen, self.inputs['Setup'], self.inputs['Included_Codes'])
 
     def finish_run(self):
-        self.log.info('Scan %s finished' % str(self.setup['Name']))
-        print("All done!")
-        print("Time Needed:               "
+        self.config.log.info('Scan %s finished' % str(self.inputs['Setup']['Name']))
+        self.config.log.info("All done!")
+        self.config.log.info("Time Needed:               "
               + str(time.time() - self.start_time) + "s")
+
+    def run_with_time(self):
+        self.start_run()
+        self.run()
+        self.finish_run()              
+
+    def generate_parameter_points(self):
+        raise NotImplementedError("You need to implement the function 'generate_parameter_points' in the Scan class" )              
+
+    def run(self):
+        raise NotImplementedError("You need to implement the function 'run' in the Scan class" ) 
+
 
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
