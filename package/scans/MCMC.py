@@ -74,9 +74,13 @@ class NewScan(Scan):
         log.info('MCMC count: %i Total points,  %i Jumps'
                  % (self.points_total, self.steps))
         next = self.get_next_step(log)
+        nr_valid_before = len(self.all_valid)
         self.run_next_point(next, log)
-        if os.path.exists(self.settings['SPheno']['OutputFile']):
+        nr_valid_after = len(self.all_valid)
+        print(nr_valid_after, nr_valid_before)
+        if nr_valid_after > nr_valid_before:
             self.jumpQ(log)
+
         # self.check_convergence()
 
     def run(self):

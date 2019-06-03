@@ -170,7 +170,7 @@ def main(stdscr, config):
             sys.exit()
         scan.run_with_time()
 
-    if curses:    # in order to keep the last information on the screen
+    if config.cursesQ:    # in order to keep the last information on the screen
         mypad_contents = []
         for i in range(0, 25):
             mypad_contents.append(stdscr.instr(i, 0))
