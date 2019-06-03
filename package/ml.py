@@ -15,21 +15,21 @@ import package.screen as screen
 # -------------------------------------
 class NN():
     def __init__(self):
-        self.input_dim = len(self.variables)
+        self.input_dim = len(self.inputs['Observables'])
 
-        self.train_lh = self.ml['TrainLH']
+        self.train_lh = self.inputs['ML']['TrainLH']
 
         if self.train_lh:
             self.output_dim = 1
         else:
-            self.output_dim = len(self.observables)
+            self.output_dim = len(self.inputs['Observables'])
 
-        self.epochs = self.ml['Epochs']
-        self.iterations = self.setup['Iterations']
-        self.neurons = self.ml['Neurons']
-        self.LR = self.ml['LR']
-        self.distance_penalty = self.ml['DensityPenality']
-        self.use_classifier = self.ml['Classifier']
+        self.epochs = self.inputs['ML']['Epochs']
+        self.iterations = self.inputs['Setup']['Iterations']
+        self.neurons = self.inputs['ML']['Neurons']
+        self.LR = self.inputs['ML']['LR']
+        self.distance_penalty = self.inputs['ML']['DensityPenality']
+        self.use_classifier = self.inputs['ML']['Classifier']
 
     def set_predictor(self):
         ''' network which predicts numerical values for observables'''
@@ -63,7 +63,7 @@ class NN():
         if self.curses:
             screen.train_nn(self.screen, 0, 0)
 
-        torch.set_num_threads(self.setup['Cores'])
+        torch.set_num_threads(self.inputs['Setup']['Cores'])
 
         best = 1.0e6
         wait = 0
