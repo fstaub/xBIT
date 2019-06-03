@@ -60,8 +60,8 @@ class NN():
     # training the neural network
     def train(self, name, x_val, y_val, log):
         log.info("Training the neural network")
-        if self.curses:
-            screen.train_nn(self.screen, 0, 0)
+        if self.config.cursesQ:
+            screen.train_nn(self.config.screen, 0, 0)
 
         torch.set_num_threads(self.inputs['Setup']['Cores'])
 
@@ -112,8 +112,8 @@ class NN():
             loss = criterion(Variable(y_pred), Variable(y_test))
 
             if epoch % 100 == 0:
-                if self.curses:
-                    screen.train_nn(self.screen, epoch, loss)
+                if self.config.cursesQ:
+                    screen.train_nn(self.config.screen, epoch, loss)
                 log.debug("Epoch: %i;  loss: %f" % (epoch, loss))
 
             # Simple implementation of early stopping
@@ -136,8 +136,8 @@ class NN():
                 self.loss = checkpoint['loss']
                 break
         log.info("Training Data: %i points, loss: %f" % (len(x_val), best))
-        if self.curses:
-            screen.status_nn(self.screen, len(x_val), best)
+        if self.config.cursesQ:
+            screen.status_nn(self.config.screen, len(x_val), best)
 
     def scale_data(self, input, log):
         '''Scale the observables: using a log for parameters which
