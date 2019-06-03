@@ -30,8 +30,17 @@ class NewScan(Scan):
             self.variances.append(v[1])
 
     def get_next_step(self, log):
-            self.next_step = [np.random.normal(x, y)
-                              for x, y in zip(self.last_step, self.variances)]
+            okay = False
+            while okay == False:
+                self.next_step = [np.random.normal(x, y)
+                                  for x, y in zip(self.last_step, self.variances)]
+                okay =  True 
+                # check if point is in the given range
+                for v, r in zip(self.next_step, self.inputs['Variables'].values()):
+                    if v < r[0][0]:
+                        okay = False 
+                    if v > r[0][1]:
+                        okay = False 
             return self.next_step
 
     def get_starting_point(self):
@@ -41,7 +50,7 @@ class NewScan(Scan):
     def jumpQ(self, log, guess=-1):
             new_point = self.all_data[-1]
             new_lh = self.likelihood(new_point[1])
-            if (new_lh > self.likelihood_last_step) or (new_lh/self.likelihood_last_step > np.random.uniform()):
+            if (new_lh > self.likelihood_last_step) or (new_lh > np.random.uniform()*self.likelihood_last_step):
                 log.info("jumped %i; new_lh: %.2E,  old_lh: %.2E"
                          % (self.steps, new_lh, self.likelihood_last_step))
                 log.info("values of obs: " + str(new_point[1]))
@@ -87,9 +96,15 @@ class NewScan(Scan):
         while len(self.all_data) == 0:
             start = self.get_starting_point()
             self.runner.run(self.config.log, sample=[start])
+            if len(self.all_data) == 1:
+                    first_point = self.all_data[0]
+                    self.likelihood_last_step = self.likelihood(first_point[1])
+
+                    # if point is not valid, let's remove it and keep searching!
+                    if (self.likelihood_last_step) == 0:
+                        self.all_data = []
+
         self.config.log.info("Found first point in MCMC: %s" % str(start))
-        first_point = self.all_data[0]
-        self.likelihood_last_step = self.likelihood(first_point[1])
         self.last_step = first_point[0]
 
         # run the chain
