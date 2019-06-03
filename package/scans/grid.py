@@ -14,10 +14,10 @@ class NewScan(Scan):
         self.runner.run(self.config.log, sample=[])
 
     def generate_parameter_points(self, vars, points):
-        all = []
+        all_points = []
         for x in vars:
-            all.append(eval(vars[x]))
-        temp = list(itertools.product(*all))
-        all = [list(xx) for xx in temp]
-        self.setup['Points'] = len(all)
-        return all       
+            all_points.append(eval(vars[x]))
+        temp = list(itertools.product(*all_points))
+        all_points = [list(xx) for xx in temp]
+        self.inputs['Setup']['Points'] = len(all_points)
+        return all_points       
