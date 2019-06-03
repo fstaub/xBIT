@@ -30,9 +30,9 @@ where the INPUTFILE contains all information to define a scan. An example for a 
   },
 
   "Variables": {
-      "0": "LOG(100,10000,10)",
-      "1": "LINEAR(200,500,10)",
-      "2": "LINEAR(10,20,2)"
+      "0": "np.geomspace(100, 10000, num=10)",
+      "1": "np.linspace(200, 500, num=10)",
+      "2": "np.linspace(10, 20, num=2)"
   },
 
   "Blocks": {
@@ -67,4 +67,4 @@ where the INPUTFILE contains all information to define a scan. An example for a 
 ```
 
 ## Note
-This package is completely independent of another scanning tool which comes with a bunch of 'BITs'. Nevertheless, the name was chosen on purpose to point out that it follows a philosophy which is orthogonal to this other tool.
+This package is completely independent of another scanning tool which comes with a bunch of 'BITs', but follows in many respects a philosophy with is orthogonal to this other tool.
