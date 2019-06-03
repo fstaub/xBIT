@@ -3,7 +3,7 @@
     "Settings": "MSSM.json",
     "Name": "m0_m12_DM",
     "Type": "MLS",
-    "Points": 100,
+    "Points": 10,
     "Iterations": 20,
     "Cores": 1
   },
