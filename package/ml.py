@@ -15,7 +15,7 @@ import package.screen as screen
 # -------------------------------------
 class NN():
     def __init__(self):
-        self.input_dim = len(self.inputs['Observables'])
+        self.input_dim = len(self.inputs['Variables'])
 
         self.train_lh = self.inputs['ML']['TrainLH']
 
@@ -123,13 +123,13 @@ class NN():
                 torch.save({'state_dict': name.state_dict(),
                             'optimizer': optimizer.state_dict(),
                             'loss': self.loss},
-                           os.path.join(self.temp_dir, "checkpoint.pth.tar"))
+                           os.path.join(self.config.temp_dir, "checkpoint.pth.tar"))
             else:
                 wait = wait + 1
             if wait > patience or epoch == (self.epochs - 1):
                 log.info("Stopped after %i epochs" % epoch)
                 checkpoint = torch.load(
-                    os.path.join(self.temp_dir, "checkpoint.pth.tar")
+                    os.path.join(self.config.temp_dir, "checkpoint.pth.tar")
                 )
                 name.load_state_dict(checkpoint['state_dict'])
                 optimizer.load_state_dict(checkpoint['optimizer'])
