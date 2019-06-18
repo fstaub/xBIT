@@ -4,7 +4,7 @@ import datetime
 
 def show_logo(stdscr):
     # update intendations
-    curses.resizeterm(150, 45)
+    # curses.resizeterm(150, 45)
 
     stdscr.clear()
     stdscr.addstr(1, 0, "       __________.______________  ")

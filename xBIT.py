@@ -73,7 +73,9 @@ def set_default(input, log):
     if 'Observables' not in input:
         input['Observables'] = {}
     if 'Points' not in input['Setup']:
-        input['Setup']['Points'] = 1        
+        input['Setup']['Points'] = 1  
+    if 'StoreAllPoints' not in input['Setup']:
+        input['Setup']['StoreAllPoints'] = False            
 
     # Setting of NN
     if 'ML' not in input:

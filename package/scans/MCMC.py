@@ -86,7 +86,6 @@ class NewScan(Scan):
         nr_valid_before = len(self.all_valid)
         self.run_next_point(next, log)
         nr_valid_after = len(self.all_valid)
-        print(nr_valid_after, nr_valid_before)
         if nr_valid_after > nr_valid_before:
             self.jumpQ(log)
 

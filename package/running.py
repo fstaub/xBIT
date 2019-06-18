@@ -212,8 +212,9 @@ class Runner():
             
             # We keep the non-valid points for plotting
             if not scan.Short:
-                debug.command_line_log("cat " + scan.settings['SPheno']['InputFile']
-                                   + " >> " + output_file, log)
-                debug.command_line_log("echo \"ENDOFPARAMETERPOINT\" >> "
-                                  + output_file, log)
+                if scan.inputs['StoreAllPoints']:
+                    debug.command_line_log("cat " + scan.settings['SPheno']['InputFile']
+                                    + " >> " + output_file, log)
+                    debug.command_line_log("echo \"ENDOFPARAMETERPOINT\" >> "
+                                    + output_file, log)
             log.info('NO SPheno spectrum produced')
